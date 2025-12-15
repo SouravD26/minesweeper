@@ -407,17 +407,18 @@
                 text: "You clicked on a mine!",
                 showCancelButton: true,
                 confirmButtonText: "Try Again",
-               <!-- cancelButtonText: "Main Page", -->
+               cancelButtonText: "Cancel", 
                 customClass: {
                   confirmButton: "swal-confirm-btn",
-                  cancelButton: "swal-cancel-btn",
+               cancelButton: "swal-cancel-btn", 
                 },
               }).then((result) => {
                 if (result.isConfirmed) {
                   location.reload();
-                } else {
-                  window.location.href = "https://sanmarg.in/sanmarg-games";
-                }
+                } 
+           else {
+                  window.location.href = "#";
+                } 
               });
             }, 400);
           }, 400);
@@ -493,19 +494,20 @@
               text: `Moves: ${moveCount} | Time: ${seconds}s`,
               showCancelButton: true,
               confirmButtonText: "Try Again",
-              cancelButtonText: "Main Page",
+         <!-- cancelButtonText: "Main Page", -->
               allowOutsideClick: false,
               allowEscapeKey: false,
               customClass: {
                 confirmButton: "swal-confirm-btn",
-                cancelButton: "swal-cancel-btn",
+          <!--  cancelButton: "swal-cancel-btn", ->
               },
             }).then((result) => {
               if (result.isConfirmed) {
                 location.reload();
-              } else {
+              } 
+        <!--  else {
                 window.location.href = "";
-              }
+              } -->
             });
           }, 600);
         }
@@ -515,4 +517,5 @@
     </script>
   </body>
 </html>
+
 
