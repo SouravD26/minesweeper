@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <title>Minesweeper</title>
+    <style>
+      /* * {
+        box-sizing: border-box;
+      } */
+
+      /* body {
+        margin: 0;
+        padding: 0;
+      } */
+
+      #page-sd {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        min-height: auto;
+      }
+
+      #h1-sd {
+        text-align: center !important;
+      }
+      .container-sd {
+        font-family: "Roboto", sans-serif;
+        text-align: center;
+        background-color: #e7f2e4;
+        padding: 20px;
+        border-radius: 10px;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      #scoreboard {
+        margin-bottom: 20px;
+      }
+
+      #scoreboard p {
+        font-size: 16px;
+        margin: 5px 0;
+      }
+
+      #game {
+        display: grid;
+        box-shadow: 0 8px 20px #537d5d;
+        border-radius: 10px;
+        grid-template-columns: repeat(8, 40px);
+        grid-template-rows: repeat(8, 40px);
+        gap: 2px;
+        margin: 20px auto;
+      }
+
+      #bomb-count {
+        color: #cf0f47;
+      }
+
+      #move-count {
+        color: #be5985;
+      }
+      #timer {
+        color: #c62300;
+      }
+      .cell:not(.revealed):hover {
+        background-color: #84ae92;
+        transform: scale(1.05);
+      }
+      .more-btn {
+        background-color: #7c4585;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        text-decoration: none;
+      }
+      .more-btn:hover {
+        background-color: #c95792;
+      }
+      .swal-confirm-btn {
+        background-color: #2daa9e !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 14px !important;
+        padding: 8px 20px !important;
+        font-size: 16px !important;
+      }
+
+      .swal-cancel-btn {
+        background-color: #578fca !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 14px !important;
+        padding: 8px 20px !important;
+        font-size: 16px !important;
+      }
+
+      .cell.revealed {
+        animation: flipReveal 0.3s ease-in-out;
+      }
+
+      @keyframes flipReveal {
+        0% {
+          transform: rotateY(90deg);
+          background-color: #e0e0e0;
+        }
+        100% {
+          transform: rotateY(0);
+          background-color: #547792;
+        }
+      }
+
+      .cell {
+        width: 40px;
+        height: 40px;
+        background-color: #b0db9c;
+        border: 1px solid #90c67c;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 40px;
+        text-align: center;
+        user-select: none;
+        transition: background-color 0.2s, transform 0.2s;
+        touch-action: manipulation;
+      }
+
+      .cell.revealed {
+        background-color: #547792;
+        cursor: default;
+      }
+      .cell.flagged {
+        background-color: #94b4c1;
+        animation: pulseFlag 1s infinite;
+      }
+
+      @keyframes pulseFlag {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.15);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .cell.bomb-hit {
+        animation: bombFlash 0.4s ease forwards;
+      }
+      #h1-sd {
+        text-decoration: underline;
+        font-size: 24px;
+      }
+      @keyframes bombFlash {
+        0% {
+          background-color: #cb0404;
+          transform: scale(0.5);
+        }
+        50% {
+          background-color: white;
+          transform: scale(1);
+        }
+        100% {
+          background-color: #ea7300;
+          transform: scale(1.3);
+        }
+      }
+
+      /* Tablet View */
+      @media (max-width: 1024px) {
+        #game {
+          grid-template-columns: repeat(8, 36px);
+          grid-template-rows: repeat(8, 36px);
+        }
+
+        .cell {
+          width: 36px;
+          height: 36px;
+          font-size: 16px;
+          line-height: 36px;
+        }
+
+        #h1-sd {
+          font-size: 22px;
+        }
+
+        #scoreboard p {
+          font-size: 15px;
+        }
+      }
+
+      /* Mobile View */
+      @media (max-width: 600px) {
+        #game {
+          grid-template-columns: repeat(8, 10vw);
+          grid-template-rows: repeat(8, 10vw);
+        }
+
+        .cell {
+          width: 10vw;
+          height: 10vw;
+          font-size: 4vw;
+          line-height: 10vw;
+        }
+
+        .container-sd {
+          padding: 15px;
+        }
+
+        #h1-sd {
+          font-size: 20px;
+        }
+
+        #scoreboard p {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="page-sd">
+      <div class="container-sd">
+        <h1 id="h1-sd">माइनस्वीपर खेल</h1>
+        <div id="scoreboard">
+          <p><b>Bombs</b>: <span id="bomb-count">0</span></p>
+          <p><b>Moves</b>: <span id="move-count">0</span></p>
+          <!-- <p><b>Flags</b>: <span id="flag-count">0</span></p> -->
+          <p><b>Time</b>: <span id="timer">0</span>s</p>
+        </div>
+        <div id="game"></div>
+        <!-- <a
+          href="https://sanmarg.in/sanmarg-games"
+          class="more-btn"
+          target="_blank"
+          rel="noopener noreferrer"
+          >More Games</a
+        > -->
+      </div>
+    </div>
+    <script>
+      const game = document.getElementById("game");
+      const moveCountElem = document.getElementById("move-count");
+      const flagCountElem = document.getElementById("flag-count");
+      const timerElem = document.getElementById("timer");
+      const rows = 8;
+      const cols = 8;
+      let mineCount;
+
+      document.getElementById("bomb-count").textContent = mineCount;
+
+      let cells = [],
+        moveCount = 0,
+        flagCount = 0;
+      let timer,
+        seconds = 0,
+        gameStarted = false,
+        gameOver = false;
+
+      // let mineCount;
+
+      function selectGameMode() {
+        Swal.fire({
+          title: "Select Game Mode",
+          input: "radio",
+          inputOptions: {
+            easy: "Easy",
+            medium: "Medium",
+            hard: "Hard",
+          },
+          inputValidator: (value) => {
+            if (!value) return "You need to choose a mode!";
+          },
+          confirmButtonText: "Start Game",
+          allowOutsideClick: false,
+          customClass: {
+            confirmButton: "swal-confirm-btn",
+          },
+        }).then((result) => {
+          if (result.isConfirmed) {
+            switch (result.value) {
+              case "easy":
+                mineCount = 5;
+                break;
+              case "medium":
+                mineCount = 7;
+                break;
+              case "hard":
+                mineCount = 10;
+                break;
+            }
+            document.getElementById("bomb-count").textContent = mineCount;
+            createGrid(); // only create grid after mode selection
+          }
+        });
+      }
+
+      // Start game mode selection on page load
+      selectGameMode();
+
+      function createGrid() {
+        cells = [];
+        game.innerHTML = "";
+        for (let r = 0; r < rows; r++) {
+          cells[r] = [];
+          for (let c = 0; c < cols; c++) {
+            const cell = document.createElement("div");
+            cell.classList.add("cell");
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.addEventListener("click", revealCell);
+            cell.addEventListener("contextmenu", flagCell);
+            game.appendChild(cell);
+            cells[r][c] = {
+              element: cell,
+              mine: false,
+              revealed: false,
+              flagged: false,
+              count: 0,
+            };
+          }
+        }
+      }
+
+      function placeMines(firstRow, firstCol) {
+        let placed = 0;
+        while (placed < mineCount) {
+          const r = Math.floor(Math.random() * rows);
+          const c = Math.floor(Math.random() * cols);
+
+          const isInSafeZone =
+            Math.abs(r - firstRow) <= 1 && Math.abs(c - firstCol) <= 1;
+
+          if (!cells[r][c].mine && !isInSafeZone) {
+            cells[r][c].mine = true;
+            placed++;
+          }
+        }
+      }
+
+      function calculateNumbers() {
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (cells[r][c].mine) continue;
+            let count = 0;
+            for (let dr = -1; dr <= 1; dr++) {
+              for (let dc = -1; dc <= 1; dc++) {
+                if (cells[r + dr]?.[c + dc]?.mine) count++;
+              }
+            }
+            cells[r][c].count = count;
+          }
+        }
+      }
+
+      function startTimer() {
+        timer = setInterval(() => {
+          seconds++;
+          timerElem.textContent = seconds;
+        }, 1000);
+      }
+
+      function revealCell(e) {
+        if (gameOver) return;
+
+        const r = +this.dataset.row;
+        const c = +this.dataset.col;
+        const cell = cells[r][c];
+
+        if (cell.revealed || cell.flagged) return;
+
+        if (!gameStarted) {
+          placeMines(r, c);
+          calculateNumbers();
+          startTimer();
+          gameStarted = true;
+        }
+
+        moveCount++;
+        moveCountElem.textContent = moveCount;
+        cell.revealed = true;
+        cell.element.classList.add("revealed");
+
+        if (cell.mine) {
+          gameOver = true;
+          clearInterval(timer);
+
+          cell.element.classList.add("bomb-hit");
+          cell.element.textContent = "💣";
+
+          setTimeout(() => {
+            revealAllBombsAndFlags();
+            setTimeout(() => {
+              Swal.fire({
+                icon: "error",
+                title: "💥 Game Over!",
+                text: "You clicked on a mine!",
+                showCancelButton: true,
+                confirmButtonText: "Try Again",
+                cancelButtonText: "Main Page",
+                customClass: {
+                  confirmButton: "swal-confirm-btn",
+                  cancelButton: "swal-cancel-btn",
+                },
+              }).then((result) => {
+                if (result.isConfirmed) {
+                  location.reload();
+                } else {
+                  window.location.href = "https://sanmarg.in/sanmarg-games";
+                }
+              });
+            }, 400);
+          }, 400);
+          return;
+        }
+
+        if (cell.count > 0) {
+          cell.element.textContent = cell.count;
+        } else {
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              const nr = r + dr;
+              const nc = c + dc;
+              if (cells[nr]?.[nc] && !cells[nr][nc].revealed) {
+                revealCell.call(cells[nr][nc].element);
+              }
+            }
+          }
+        }
+
+        checkWin();
+      }
+
+      function flagCell(e) {
+        e.preventDefault();
+        if (gameOver || !gameStarted) return;
+        const r = +this.dataset.row;
+        const c = +this.dataset.col;
+        const cell = cells[r][c];
+        if (cell.revealed) return;
+
+        cell.flagged = !cell.flagged;
+        flagCount = cell.flagged ? flagCount + 1 : flagCount - 1;
+        flagCountElem.textContent = flagCount;
+        cell.element.classList.toggle("flagged");
+        cell.element.textContent = cell.flagged ? "🚩" : "";
+      }
+
+      function revealAllBombsAndFlags() {
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const cell = cells[r][c];
+            if (cell.mine && !cell.revealed) {
+              cell.element.textContent = "💣";
+              cell.element.classList.add("revealed");
+            } else if (cell.flagged) {
+              cell.element.textContent = "🚩";
+            }
+          }
+        }
+      }
+
+      function checkWin() {
+        if (gameOver) return;
+        let revealedCount = 0;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (cells[r][c].revealed) revealedCount++;
+          }
+        }
+        if (revealedCount === rows * cols - mineCount) {
+          gameOver = true;
+          clearInterval(timer);
+          setTimeout(() => {
+            confetti({
+              particleCount: 150,
+              spread: 100,
+              origin: { y: 0.6 },
+            });
+            Swal.fire({
+              icon: "success",
+              title: "🎉 You Win!",
+              text: `Moves: ${moveCount} | Time: ${seconds}s`,
+              showCancelButton: true,
+              confirmButtonText: "Try Again",
+              cancelButtonText: "Main Page",
+              allowOutsideClick: false,
+              allowEscapeKey: false,
+              customClass: {
+                confirmButton: "swal-confirm-btn",
+                cancelButton: "swal-cancel-btn",
+              },
+            }).then((result) => {
+              if (result.isConfirmed) {
+                location.reload();
+              } else {
+                window.location.href = "https://sanmarg.in/sanmarg-games";
+              }
+            });
+          }, 600);
+        }
+      }
+
+      createGrid();
+    </script>
+  </body>
+</html>
